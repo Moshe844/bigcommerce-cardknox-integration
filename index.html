@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Checkout - BigCommerce</title>
+</head>
+<body>
+    <h2>Checkout</h2>
+    <form id="payment-form">
+        <label for="card-number">Card Number:</label>
+        <input type="text" id="card-number" name="cardNumber" required>
+
+        <label for="card-expiry">Expiration Date (MM/YY):</label>
+        <input type="text" id="card-expiry" name="cardExp" required>
+
+        <label for="card-cvv">CVV:</label>
+        <input type="text" id="card-cvv" name="cardCvv" required>
+
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount" value="10.00" readonly>
+
+        <button type="submit">Submit Payment</button>
+    </form>
+
+    <script src="https://cdn.bigcommerce.com/checkout-sdk"></script>
+    <script src="bigcommerce.js"></script>
+</body>
+</html>

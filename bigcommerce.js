@@ -2,7 +2,7 @@ import createCheckoutService from '@bigcommerce/checkout-sdk';
 
 // Send payment data to the backend server
 async function sendPaymentToServer(paymentData) {
-    const response = await fetch('https://bigcommerce-server.onrender.com/api/payment', {
+    const response = await fetch('https://your-server.onrender.com/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paymentData),  // Ensure data is properly formatted as JSON
@@ -20,18 +20,18 @@ async function sendPaymentToServer(paymentData) {
             const state = await checkoutService.loadCheckout();
             console.log('Checkout State:', state);
 
-            const checkoutButton = document.querySelector('#checkout-payment-continue');
+            const checkoutButton = document.querySelector('#payment-form button');
             if (checkoutButton) {
                 checkoutButton.addEventListener('click', async (e) => {
                     e.preventDefault();
 
                     // Hard-code static payment data (similar to how the card data is hard-coded)
                     const paymentData = {
-                        cardNumber: "4111 1111 1111 1111",  // Static test card number
-                        cardExp: "12/25",  // Static expiration date (MM/YY)
-                        cardCvv: "123",  // Static CVV code
-                        amount: "10.00",  // Static amount (formatted correctly)
-                        orderId: "12345",  // Static order ID
+                        cardNumber: document.querySelector('#card-number').value,
+                        cardExp: document.querySelector('#card-expiry').value,
+                        cardCvv: document.querySelector('#card-cvv').value,
+                        amount: document.querySelector('#amount').value,
+                        orderId: state.data.getOrder().id,
                     };
 
                     console.log('Sending Payment Data:', paymentData);  // Log data before sending
