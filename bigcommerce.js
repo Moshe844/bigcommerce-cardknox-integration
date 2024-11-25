@@ -1,10 +1,11 @@
 import createCheckoutService from '@bigcommerce/checkout-sdk';
 
+// Send payment data to the backend server
 async function sendPaymentToServer(paymentData) {
     const response = await fetch('https://bigcommerce-server.onrender.com/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData),
+        body: JSON.stringify(paymentData),  // Ensure data is properly formatted as JSON
     });
 
     return response.json();
@@ -15,7 +16,7 @@ async function sendPaymentToServer(paymentData) {
 
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            // Load the BigCommerce checkout state
+            // Load the BigCommerce checkout state (we're not using it directly anymore)
             const state = await checkoutService.loadCheckout();
             console.log('Checkout State:', state);
 
@@ -24,44 +25,40 @@ async function sendPaymentToServer(paymentData) {
                 checkoutButton.addEventListener('click', async (e) => {
                     e.preventDefault();
 
-                    // Ensure the selected payment method is "Test Payment Provider"
-                    const selectedPaymentMethod = state.data.getSelectedPaymentMethod();
-                    if (selectedPaymentMethod && selectedPaymentMethod.id === 'manual') {
-                        // Collect custom credit card data
-                        const paymentData = {
-                            cardNumber: document.querySelector('#card-number').value,
-                            cardExp: document.querySelector('#card-expiry').value,
-                            cardCvv: document.querySelector('#card-cvv').value,
-                            amount: state.data.getOrder().grandTotal,
-                            orderId: state.data.getOrder().id,
-                        };
+                    // Hard-code static payment data (similar to how the card data is hard-coded)
+                    const paymentData = {
+                        cardNumber: "4111 1111 1111 1111",  // Static test card number
+                        cardExp: "12/25",  // Static expiration date (MM/YY)
+                        cardCvv: "123",  // Static CVV code
+                        amount: "10.00",  // Static amount (formatted correctly)
+                        orderId: "12345",  // Static order ID
+                    };
 
-                        try {
-                            // Send payment data to your backend server for processing via Cardknox
-                            const result = await sendPaymentToServer(paymentData);
+                    console.log('Sending Payment Data:', paymentData);  // Log data before sending
 
-                            if (result.success) {
-                                console.log('Payment Successful:', result.transactionId);
+                    try {
+                        // Send payment data to your backend server for processing via Cardknox
+                        const result = await sendPaymentToServer(paymentData);
 
-                                // Submit the order to BigCommerce
-                                await checkoutService.submitOrder({
-                                    payment: {
-                                        methodId: 'manual', // Use "manual" since we’re using Test Payment
-                                        gatewayId: 'cardknox', // Custom identifier for Cardknox
-                                    },
-                                });
+                        if (result.success) {
+                            console.log('Payment Successful:', result.transactionId);
 
-                                alert('Order submitted successfully!');
-                            } else {
-                                console.error('Payment Failed:', result.message);
-                                alert('Payment failed: ' + result.message);
-                            }
-                        } catch (error) {
-                            console.error('Error during payment processing:', error);
-                            alert('An error occurred. Please try again.');
+                            // Submit the order to BigCommerce
+                            await checkoutService.submitOrder({
+                                payment: {
+                                    methodId: 'manual', // Use "manual" since we’re using Test Payment
+                                    gatewayId: 'cardknox', // Custom identifier for Cardknox
+                                },
+                            });
+
+                            alert('Order submitted successfully!');
+                        } else {
+                            console.error('Payment Failed:', result.message);
+                            alert('Payment failed: ' + result.message);
                         }
-                    } else {
-                        alert('Please select the Cardknox payment method.');
+                    } catch (error) {
+                        console.error('Error during payment processing:', error);
+                        alert('An error occurred. Please try again.');
                     }
                 });
             }
