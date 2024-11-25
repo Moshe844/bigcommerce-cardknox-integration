@@ -1,5 +1,15 @@
 import createCheckoutService from '@bigcommerce/checkout-sdk';
 
+async function sendPaymentToServer(paymentData) {
+    const response = await fetch('https://bigcommerce-server.onrender.com/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData),
+    });
+
+    return response.json();
+}
+
 (async function () {
     const checkoutService = createCheckoutService();
 
@@ -14,27 +24,21 @@ import createCheckoutService from '@bigcommerce/checkout-sdk';
                 checkoutButton.addEventListener('click', async (e) => {
                     e.preventDefault();
 
-                    // Ensure the selected payment method is "Credit Card"
+                    // Ensure the selected payment method is "Test Payment Provider"
                     const selectedPaymentMethod = state.data.getSelectedPaymentMethod();
-                    if (selectedPaymentMethod && selectedPaymentMethod.id === 'credit_card') {
-                        // Collect payment data from the credit card form
+                    if (selectedPaymentMethod && selectedPaymentMethod.id === 'manual') {
+                        // Collect custom credit card data
                         const paymentData = {
-                            cardNumber: document.querySelector('#cc-number').value,
-                            cardExp: document.querySelector('#cc-exp').value,
-                            cardCvv: document.querySelector('#cc-cvv').value,
+                            cardNumber: document.querySelector('#card-number').value,
+                            cardExp: document.querySelector('#card-expiry').value,
+                            cardCvv: document.querySelector('#card-cvv').value,
                             amount: state.data.getOrder().grandTotal,
                             orderId: state.data.getOrder().id,
                         };
 
                         try {
                             // Send payment data to your backend server for processing via Cardknox
-                            const response = await fetch('https://bigcommerce-server.onrender.com/api/payment', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(paymentData),
-                            });
-
-                            const result = await response.json();
+                            const result = await sendPaymentToServer(paymentData);
 
                             if (result.success) {
                                 console.log('Payment Successful:', result.transactionId);
@@ -42,8 +46,8 @@ import createCheckoutService from '@bigcommerce/checkout-sdk';
                                 // Submit the order to BigCommerce
                                 await checkoutService.submitOrder({
                                     payment: {
-                                        methodId: 'credit_card',
-                                        gatewayId: 'custom_gateway', // Optional custom identifier for the gateway
+                                        methodId: 'manual', // Use "manual" since we’re using Test Payment
+                                        gatewayId: 'cardknox', // Custom identifier for Cardknox
                                     },
                                 });
 
@@ -57,7 +61,7 @@ import createCheckoutService from '@bigcommerce/checkout-sdk';
                             alert('An error occurred. Please try again.');
                         }
                     } else {
-                        alert('Please select the Credit Card payment method.');
+                        alert('Please select the Cardknox payment method.');
                     }
                 });
             }
