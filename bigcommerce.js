@@ -2,7 +2,7 @@ import createCheckoutService from '@bigcommerce/checkout-sdk';
 
 // Send payment data to the backend server
 async function sendPaymentToServer(paymentData) {
-    const response = await fetch('https://your-server.onrender.com/api/payment', {
+    const response = await fetch('https://bigcommerce-server.onrender.com/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paymentData),  // Ensure data is properly formatted as JSON
