@@ -1,29 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Checkout - BigCommerce</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BigCommerce Checkout with Cardknox</title>
+  <!-- BigCommerce Checkout SDK -->
+  <script src="https://checkout-sdk.bigcommerce.com/v1/loader.js"></script>
+  <!-- Cardknox JavaScript Library -->
+  <script src="https://cdn.cardknox.com/cardknox.js"></script>
 </head>
 <body>
-    <h2>Checkout</h2>
-    <form id="payment-form">
-        <label for="card-number">Card Number:</label>
-        <input type="text" id="card-number" name="cardNumber" required>
+  <h1>BigCommerce Checkout</h1>
+  <form id="checkout-form">
+    <label>Card Number:
+      <input type="text" id="card-number" required />
+    </label>
+    <label>Expiry Date:
+      <input type="text" id="card-expiry" placeholder="MM/YY" required />
+    </label>
+    <label>CVV:
+      <input type="text" id="card-cvv" required />
+    </label>
+    <button type="submit">Submit Order</button>
+  </form>
 
-        <label for="card-expiry">Expiration Date (MM/YY):</label>
-        <input type="text" id="card-expiry" name="cardExp" required>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Load the BigCommerce Checkout SDK using the CDN loader
+        const module = await checkoutKitLoader.load('checkout-sdk');
+        const checkoutService = module.createCheckoutService();
 
-        <label for="card-cvv">CVV:</label>
-        <input type="text" id="card-cvv" name="cardCvv" required>
+        // Load the checkout details
+        const state = await checkoutService.loadCheckout();
+        console.log('Checkout State:', state);
 
-        <label for="amount">Amount:</label>
-        <input type="text" id="amount" name="amount" value="10.00" readonly>
+        const checkoutButton = document.querySelector('#checkout-form');
+        if (checkoutButton) {
+          checkoutButton.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        <button type="submit">Submit Payment</button>
-    </form>
+            // Initialize Cardknox
+            const knox = new Cardknox('cardktestaccoudev7973ce78b7584012a3ad439b1d65');
+            const cardData = {
+              cardNumber: document.getElementById('card-number').value,
+              cardExp: document.getElementById('card-expiry').value,
+              cardCvv: document.getElementById('card-cvv').value,
+            };
 
-    
-    <script type="module" src="bigcommerce.js"></script>
+            knox.tokenize(cardData, async (response) => {
+              if (response.success) {
+                const token = response.token;
+
+                // Prepare payment data
+                const paymentData = {
+                  cardknoxToken: token,
+                  amount: state.data.getCart().grandTotal,
+                  orderId: state.data.getCheckout().id,
+                };
+
+                console.log('Tokenized Payment Data:', paymentData);
+
+                try {
+                  // Submit the order with BigCommerce
+                  await checkoutService.submitOrder({
+                    payment: {
+                      methodId: 'manual', // For Test Payments
+                      gatewayId: 'cardknox', // Custom identifier for Cardknox
+                    },
+                  });
+
+                  alert('Order submitted successfully!');
+                } catch (error) {
+                  console.error('Error submitting order:', error);
+                  alert('Error submitting order. Please try again.');
+                }
+              } else {
+                console.error('Card tokenization failed:', response.error);
+                alert('Card tokenization failed: ' + response.error.message);
+              }
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Error loading checkout:', error);
+      }
+    });
+  </script>
 </body>
 </html>
